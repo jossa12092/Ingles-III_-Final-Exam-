@@ -1,0 +1,1077 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Zero & First Conditional Secure Quiz</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      height: 100%;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top, #eef7ff, #c6d8ff);
+      color: #222;
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+      overflow-x: hidden;
+    }
+
+    #bgCanvas {
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+    }
+
+    #app {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .card {
+      width: 100%;
+      max-width: 640px;
+      background: rgba(255, 255, 255, 0.96);
+      border-radius: 18px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.12);
+      padding: 20px 18px 22px;
+    }
+
+    @media (min-width: 480px) {
+      .card {
+        padding: 24px 26px 28px;
+      }
+    }
+
+    h1, h2 {
+      text-align: center;
+      margin-bottom: 12px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+
+    p {
+      margin-bottom: 10px;
+      line-height: 1.4;
+      font-size: 0.95rem;
+    }
+
+    .screen {
+      display: none;
+    }
+
+    .screen.active {
+      display: block;
+    }
+
+    .center {
+      text-align: center;
+    }
+
+    button {
+      border: none;
+      border-radius: 999px;
+      padding: 10px 18px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: transform 0.1s ease, box-shadow 0.1s ease, background 0.2s ease;
+      background: linear-gradient(135deg, #4f8bff, #6ad3ff);
+      color: #fff;
+      font-weight: 600;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.18);
+    }
+
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      box-shadow: none;
+      transform: none;
+    }
+
+    button:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(0,0,0,0.22);
+    }
+
+    button:active:not(:disabled) {
+      transform: translateY(0);
+      box-shadow: 0 3px 8px rgba(0,0,0,0.18);
+    }
+
+    .btn-secondary {
+      background: #eef2ff;
+      color: #1e3a8a;
+      box-shadow: none;
+    }
+
+    .btn-secondary:hover:not(:disabled) {
+      background: #e0e7ff;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.12);
+    }
+
+    .btn-ghost {
+      background: transparent;
+      color: #1f2933;
+      box-shadow: none;
+      border: 1px solid #cbd5e1;
+    }
+
+    .btn-ghost:hover {
+      background: #e5e7eb;
+    }
+
+    .header-row {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    @media (min-width: 520px) {
+      .header-row {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+      }
+    }
+
+    .progress-container {
+      width: 100%;
+      background: #e5e7eb;
+      border-radius: 999px;
+      overflow: hidden;
+      height: 10px;
+    }
+
+    #progress-bar {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #22c55e, #4ade80);
+      transition: width 0.25s ease;
+    }
+
+    .stats {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      font-size: 0.83rem;
+      justify-content: flex-start;
+    }
+
+    .badge {
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: #eef2ff;
+      color: #1e3a8a;
+      font-weight: 600;
+    }
+
+    .badge.badge-ok {
+      background: #dcfce7;
+      color: #166534;
+    }
+
+    .badge.badge-bad {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    #question-box {
+      background: #f3f4ff;
+      border-radius: 14px;
+      padding: 12px 12px;
+      margin-bottom: 12px;
+    }
+
+    #question-meta {
+      font-size: 0.8rem;
+      color: #4b5563;
+      margin-bottom: 4px;
+    }
+
+    #question-text {
+      font-size: 1rem;
+      font-weight: 600;
+    }
+
+    #options-container {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .option-btn {
+      width: 100%;
+      text-align: left;
+      padding: 10px 12px;
+      border-radius: 12px;
+      background: #f9fafb;
+      color: #111827;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+      border: 1px solid transparent;
+      font-size: 0.95rem;
+    }
+
+    .option-btn span.label {
+      display: inline-block;
+      font-weight: 700;
+      width: 24px;
+    }
+
+    .option-btn.correct {
+      background: #dcfce7;
+      border-color: #4ade80;
+    }
+
+    .option-btn.incorrect {
+      background: #fee2e2;
+      border-color: #f87171;
+    }
+
+    #feedback {
+      min-height: 22px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      margin-bottom: 6px;
+    }
+
+    #feedback.correct {
+      color: #16a34a;
+    }
+
+    #feedback.incorrect {
+      color: #b91c1c;
+    }
+
+    .footer-row {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 4px;
+      gap: 8px;
+    }
+
+    .small {
+      font-size: 0.8rem;
+      color: #6b7280;
+    }
+
+    .result-row {
+      text-align: center;
+      margin: 10px 0;
+    }
+
+    .result-row strong {
+      font-size: 1.05rem;
+    }
+
+    /* Estilo para matching */
+    .match-row {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      padding: 8px 10px;
+      border-radius: 10px;
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+    }
+
+    @media (min-width: 520px) {
+      .match-row {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+      }
+    }
+
+    .match-stem {
+      font-size: 0.93rem;
+      margin-right: 8px;
+    }
+
+    .match-select {
+      margin-top: 4px;
+      width: 100%;
+      max-width: 260px;
+      padding: 6px 8px;
+      border-radius: 999px;
+      border: 1px solid #cbd5f5;
+      background: #eef2ff;
+      font-size: 0.9rem;
+    }
+
+    @media (min-width: 520px) {
+      .match-select {
+        margin-top: 0;
+      }
+    }
+
+    .match-row.correct-row {
+      border-color: #4ade80;
+      background: #dcfce7;
+    }
+
+    .match-row.incorrect-row {
+      border-color: #f87171;
+      background: #fee2e2;
+    }
+  </style>
+</head>
+<body oncopy="return false" oncut="return false" onpaste="return false">
+<canvas id="bgCanvas"></canvas>
+
+<div id="app">
+  <div class="card">
+    <!-- START SCREEN -->
+    <div id="start-screen" class="screen active">
+      <h1>Zero & First Conditional Quiz</h1>
+      <p class="center">
+        You will answer <strong>25 random items</strong> about
+        <strong>Zero</strong> and <strong>First Conditional</strong>.
+      </p>
+      <p class="small center">
+        Matching questions: choose the correct ending for each sentence using the dropdown menus.
+      </p>
+      <p class="small center">
+        If you change tab, minimize, copy text, or try restricted actions,
+        the quiz will reset and you will start again with new random questions.
+      </p>
+      <div class="center" style="margin-top: 14px;">
+        <button id="start-btn">Start</button>
+      </div>
+    </div>
+
+    <!-- QUIZ SCREEN -->
+    <div id="quiz-screen" class="screen">
+      <div class="header-row">
+        <div class="progress-container">
+          <div id="progress-bar"></div>
+        </div>
+        <div class="stats">
+          <span class="badge">
+            Q <span id="question-number">1</span> /
+            <span id="total-questions">25</span>
+          </span>
+          <span class="badge badge-ok">
+            ✔ Correct: <span id="correct-count">0</span>
+          </span>
+          <span class="badge badge-bad">
+            ✖ Incorrect: <span id="incorrect-count">0</span>
+          </span>
+        </div>
+      </div>
+
+      <div id="question-box">
+        <div id="question-meta"></div>
+        <div id="question-text"></div>
+      </div>
+
+      <div id="options-container"></div>
+
+      <div id="feedback"></div>
+
+      <div class="footer-row">
+        <button id="next-btn" disabled>Next</button>
+      </div>
+      <p class="small center" style="margin-top: 6px;">
+        Answer and then press <strong>Next</strong> to continue.
+      </p>
+    </div>
+
+    <!-- RESULT SCREEN -->
+    <div id="result-screen" class="screen">
+      <h2>Your Result</h2>
+      <div class="result-row">
+        <strong>Correct sub-questions:</strong> <span id="final-correct">0</span><br />
+        <strong>Incorrect sub-questions:</strong> <span id="final-incorrect">0</span><br />
+        <strong>Score:</strong> <span id="final-score">0.0</span> / 5.0<br />
+        <span class="small">(Percentage: <span id="final-percent">0</span>%)</span>
+      </div>
+      <p class="small center">
+        Closing the tab, changing window or trying to copy text will restart the quiz
+        with a new random selection of questions.
+      </p>
+      <div class="center" style="margin-top: 10px;">
+        <button id="restart-btn" class="btn-secondary">Restart</button>
+      </div>
+      <p class="small center" style="margin-top: 8px;">
+        You can also download this quiz as an <strong>HTML file</strong>:
+      </p>
+      <div class="center" style="margin-top: 4px;">
+        <button id="download-btn" class="btn-ghost">Download HTML</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // === Simple animated background on Canvas ===
+  (function() {
+    const canvas = document.getElementById('bgCanvas');
+    const ctx = canvas.getContext('2d');
+    let width, height, circles;
+
+    function init() {
+      width = canvas.width = window.innerWidth;
+      height = canvas.height = window.innerHeight;
+      circles = [];
+      for (let i = 0; i < 20; i++) {
+        circles.push({
+          x: Math.random() * width,
+          y: Math.random() * height,
+          r: 20 + Math.random() * 40,
+          dx: (Math.random() - 0.5) * 0.3,
+          dy: (Math.random() - 0.5) * 0.3,
+          alpha: 0.08 + Math.random() * 0.06
+        });
+      }
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, width, height);
+      for (const c of circles) {
+        ctx.beginPath();
+        ctx.fillStyle = `rgba(79,139,255,${c.alpha})`;
+        ctx.arc(c.x, c.y, c.r, 0, Math.PI * 2);
+        ctx.fill();
+        c.x += c.dx;
+        c.y += c.dy;
+        if (c.x - c.r > width) c.x = -c.r;
+        if (c.x + c.r < 0) c.x = width + c.r;
+        if (c.y - c.r > height) c.y = -c.r;
+        if (c.y + c.r < 0) c.y = height + c.r;
+      }
+      requestAnimationFrame(draw);
+    }
+
+    window.addEventListener('resize', init);
+    init();
+    draw();
+  })();
+
+  // === QUESTION BANKS ===
+
+  // Multiple-choice questions (40)
+  const mcQuestions = [
+    // Zero Conditional
+    { id: 1, type: "Zero", text: "If you heat ice, it ___ water.",
+      options: ["became", "melts", "will melt"], correctIndex: 1 },
+    { id: 2, type: "Zero", text: "If people don’t eat, they ___ hungry.",
+      options: ["get", "got", "will get"], correctIndex: 0 },
+    { id: 3, type: "Zero", text: "If you mix red and yellow, you ___ orange.",
+      options: ["get", "got", "will get"], correctIndex: 0 },
+    { id: 4, type: "Zero", text: "If you drink water, you ___ better.",
+      options: ["feel", "felt", "will feel"], correctIndex: 0 },
+    { id: 5, type: "Zero", text: "If it rains, the ground ___.",
+      options: ["gets", "got", "will get"], correctIndex: 0 },
+    { id: 6, type: "Zero", text: "If you touch fire, it ___ you.",
+      options: ["burns", "burned", "will burn"], correctIndex: 0 },
+    { id: 7, type: "Zero", text: "If babies are tired, they ___.",
+      options: ["cry", "cried", "will cry"], correctIndex: 0 },
+    { id: 8, type: "Zero", text: "If students talk in class, the teacher ___ upset.",
+      options: ["gets", "got", "will get"], correctIndex: 0 },
+    { id: 9, type: "Zero", text: "If plants get sun, they ___.",
+      options: ["grow", "grew", "will grow"], correctIndex: 0 },
+    { id: 10, type: "Zero", text: "If dogs are hungry, they ___.",
+      options: ["bark", "barked", "bark"], correctIndex: 2 },
+
+    // First Conditional
+    { id: 11, type: "First", text: "If it rains tomorrow, we ___ at home.",
+      options: ["will stay", "stay", "stayed"], correctIndex: 0 },
+    { id: 12, type: "First", text: "If I study today, I ___ the quiz.",
+      options: ["will pass", "pass", "passed"], correctIndex: 0 },
+    { id: 13, type: "First", text: "If you call me later, I ___ the address.",
+      options: ["sent", "send", "will send"], correctIndex: 2 },
+    { id: 14, type: "First", text: "If she is tired, she ___ a nap.",
+      options: ["takes", "will take", "took"], correctIndex: 1 },
+    { id: 15, type: "First", text: "If we go to the park, we ___ pictures.",
+      options: ["took", "take", "will take"], correctIndex: 2 },
+    { id: 16, type: "First", text: "If you eat too much, you ___ sick.",
+      options: ["feel", "will feel", "felt"], correctIndex: 1 },
+    { id: 17, type: "First", text: "If they study more, they ___ better.",
+      options: ["speak", "will speak", "spoke"], correctIndex: 1 },
+    { id: 18, type: "First", text: "If the bus is late, we ___ a taxi.",
+      options: ["took", "take", "will take"], correctIndex: 2 },
+    { id: 19, type: "First", text: "If I see Laura, I ___ her the message.",
+      options: ["told", "tell", "will tell"], correctIndex: 2 },
+    { id: 20, type: "First", text: "If you drink this tea, you ___ better.",
+      options: ["will feel", "felt", "feel"], correctIndex: 0 },
+
+    // Mixed (0 / 1)
+    { id: 21, type: "Mixed", text: "If you don’t drink water, you ___ thirsty.",
+      options: ["got", "get", "will get"], correctIndex: 1 },
+    { id: 22, type: "Mixed", text: "If it is sunny tomorrow, we ___ outside.",
+      options: ["played", "play", "will play"], correctIndex: 2 },
+    { id: 23, type: "Mixed", text: "If kids eat vegetables, they ___ healthy.",
+      options: ["stay", "stayed", "will stay"], correctIndex: 0 },
+    { id: 24, type: "Mixed", text: "If I finish early, I ___ home.",
+      options: ["will go", "go", "went"], correctIndex: 0 },
+    { id: 25, type: "Mixed", text: "If dogs don’t drink water, they ___ sad.",
+      options: ["were", "will be", "are"], correctIndex: 2 },
+    { id: 26, type: "Mixed", text: "If you finish your homework, you ___ TV.",
+      options: ["will watch", "watched", "watch"], correctIndex: 0 },
+    { id: 27, type: "Mixed", text: "If you heat soup, it ___.",
+      options: ["gets hot", "got hot", "will get hot"], correctIndex: 0 },
+    { id: 28, type: "Mixed", text: "If she studies, she ___ happy.",
+      options: ["feels", "felt", "will feel"], correctIndex: 0 },
+    { id: 29, type: "Mixed", text: "If we win the game, we ___ a picture.",
+      options: ["take", "took", "will take"], correctIndex: 2 },
+    { id: 30, type: "Mixed", text: "If your phone is off, you ___ my call.",
+      options: ["will miss", "missed", "miss"], correctIndex: 0 },
+
+    { id: 31, type: "Mixed", text: "If you run fast, you ___ tired.",
+      options: ["will get", "get", "got"], correctIndex: 1 },
+    { id: 32, type: "Mixed", text: "If it is cold tomorrow, I ___ a jacket.",
+      options: ["wear", "will wear", "wore"], correctIndex: 1 },
+    { id: 33, type: "Mixed", text: "If my mom cooks pasta, I ___ happy.",
+      options: ["am", "was", "will be"], correctIndex: 0 },
+    { id: 34, type: "Mixed", text: "If the store is open, we ___ bread.",
+      options: ["will buy", "buy", "bought"], correctIndex: 0 },
+    { id: 35, type: "Mixed", text: "If you eat fast, you ___ sick.",
+      options: ["will feel", "feel", "felt"], correctIndex: 1 },
+    { id: 36, type: "Mixed", text: "If you wake up late, you ___ the bus.",
+      options: ["miss", "missed", "will miss"], correctIndex: 0 },
+    { id: 37, type: "Mixed", text: "If it rains, I ___ my umbrella.",
+      options: ["take", "took", "will take"], correctIndex: 2 },
+    { id: 38, type: "Mixed", text: "If you drink coffee at night, you ___ sleep.",
+      options: ["can’t", "couldn’t", "won’t"], correctIndex: 0 },
+    { id: 39, type: "Mixed", text: "If she eats ice cream fast, she ___ cold.",
+      options: ["gets", "got", "will get"], correctIndex: 0 },
+    { id: 40, type: "Mixed", text: "If the teacher is happy, the class ___ fun.",
+      options: ["is", "was", "will be"], correctIndex: 0 }
+  ];
+
+  // Matching blocks (10 blocks, 3 pairs each)
+  const matchingQuestions = [
+    {
+      id: "M1",
+      type: "Zero",
+      stems: [
+        "If you brush your teeth…",
+        "If water freezes…",
+        "If you eat healthy…"
+      ],
+      options: [
+        "…you feel good.",
+        "…it becomes ice.",
+        "…you have clean teeth."
+      ],
+      correct: [2, 1, 0]
+    },
+    {
+      id: "M2",
+      type: "First",
+      stems: [
+        "If it rains today…",
+        "If I finish early…",
+        "If you study tonight…"
+      ],
+      options: [
+        "…you will pass the quiz.",
+        "…we will stay inside.",
+        "…I will go home."
+      ],
+      correct: [1, 2, 0]
+    },
+    {
+      id: "M3",
+      type: "Zero",
+      stems: [
+        "If you drink water…",
+        "If cats are hungry…",
+        "If it is hot…"
+      ],
+      options: [
+        "…you stay healthy.",
+        "…cats meow.",
+        "…we sweat."
+      ],
+      correct: [0, 1, 2]
+    },
+    {
+      id: "M4",
+      type: "First",
+      stems: [
+        "If you call me…",
+        "If the bus doesn’t come…",
+        "If we go to the mall…"
+      ],
+      options: [
+        "…we will eat ice cream.",
+        "…I will answer.",
+        "…we will take a taxi."
+      ],
+      correct: [1, 2, 0]
+    },
+    {
+      id: "M5",
+      type: "Mixed",
+      stems: [
+        "If sugar gets hot…",
+        "If she finishes homework…",
+        "If you touch a cactus…"
+      ],
+      options: [
+        "…she will watch TV.",
+        "…it becomes caramel.",
+        "…it hurts."
+      ],
+      correct: [1, 0, 2]
+    },
+    {
+      id: "M6",
+      type: "Zero",
+      stems: [
+        "If students talk loudly…",
+        "If you mix blue and yellow…",
+        "If dogs see food…"
+      ],
+      options: [
+        "…the teacher gets angry.",
+        "…you get green.",
+        "…they run."
+      ],
+      correct: [0, 1, 2]
+    },
+    {
+      id: "M7",
+      type: "First",
+      stems: [
+        "If it is sunny tomorrow…",
+        "If I see Ana…",
+        "If you drink this tea…"
+      ],
+      options: [
+        "…we will play outside.",
+        "…I will give her your message.",
+        "…you will feel better."
+      ],
+      correct: [0, 1, 2]
+    },
+    {
+      id: "M8",
+      type: "Zero",
+      stems: [
+        "If you don’t drink water…",
+        "If plants get light…",
+        "If you wash your hands…"
+      ],
+      options: [
+        "…you feel weak.",
+        "…they grow.",
+        "…you remove germs."
+      ],
+      correct: [0, 1, 2]
+    },
+    {
+      id: "M9",
+      type: "First",
+      stems: [
+        "If we arrive early…",
+        "If you help me…",
+        "If the movie is boring…"
+      ],
+      options: [
+        "…we will get good seats.",
+        "…I will finish faster.",
+        "…we will change the channel."
+      ],
+      correct: [0, 1, 2]
+    },
+    {
+      id: "M10",
+      type: "Mixed",
+      stems: [
+        "If fire is hot…",
+        "If my mom cooks pasta…",
+        "If I study this week…"
+      ],
+      options: [
+        "…it burns.",
+        "…I feel happy.",
+        "…I will pass the exam."
+      ],
+      correct: [0, 1, 2]
+    }
+  ];
+
+  // === Quiz State ===
+  const TOTAL_ITEMS = 25; // number of screens per attempt
+  let selectedItems = [];
+  let currentIndex = 0;
+  let correctCount = 0;      // correct sub-questions
+  let incorrectCount = 0;    // incorrect sub-questions
+  let totalSubQuestions = 0; // mc=1, matching=3 each
+  let answeredCurrent = false;
+
+  // === DOM Elements ===
+  const startScreen = document.getElementById('start-screen');
+  const quizScreen = document.getElementById('quiz-screen');
+  const resultScreen = document.getElementById('result-screen');
+
+  const startBtn = document.getElementById('start-btn');
+  const nextBtn = document.getElementById('next-btn');
+  const restartBtn = document.getElementById('restart-btn');
+  const downloadBtn = document.getElementById('download-btn');
+
+  const qNumberEl = document.getElementById('question-number');
+  const totalQuestionsEl = document.getElementById('total-questions');
+  const correctCountEl = document.getElementById('correct-count');
+  const incorrectCountEl = document.getElementById('incorrect-count');
+
+  const questionMetaEl = document.getElementById('question-meta');
+  const questionTextEl = document.getElementById('question-text');
+  const optionsContainer = document.getElementById('options-container');
+  const feedbackEl = document.getElementById('feedback');
+  const progressBarEl = document.getElementById('progress-bar');
+
+  const finalCorrectEl = document.getElementById('final-correct');
+  const finalIncorrectEl = document.getElementById('final-incorrect');
+  const finalScoreEl = document.getElementById('final-score');
+  const finalPercentEl = document.getElementById('final-percent');
+
+  totalQuestionsEl.textContent = TOTAL_ITEMS.toString();
+
+  function showScreen(screen) {
+    startScreen.classList.remove('active');
+    quizScreen.classList.remove('active');
+    resultScreen.classList.remove('active');
+    screen.classList.add('active');
+  }
+
+  function shuffleArray(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+  }
+
+  function buildItemsList() {
+    const items = [];
+    mcQuestions.forEach(q => items.push({ kind: 'mc', q }));
+    matchingQuestions.forEach(q => items.push({ kind: 'matching', q }));
+    return items;
+  }
+
+  function pickRandomItems() {
+    const all = buildItemsList();
+    shuffleArray(all);
+    selectedItems = all.slice(0, TOTAL_ITEMS);
+    totalSubQuestions = selectedItems.reduce((sum, item) => {
+      if (item.kind === 'mc') return sum + 1;
+      return sum + item.q.stems.length;
+    }, 0);
+  }
+
+  function startQuiz() {
+    if (document.documentElement.requestFullscreen) {
+      document.documentElement.requestFullscreen().catch(() => {});
+    }
+
+    pickRandomItems();
+    currentIndex = 0;
+    correctCount = 0;
+    incorrectCount = 0;
+    correctCountEl.textContent = "0";
+    incorrectCountEl.textContent = "0";
+    progressBarEl.style.width = "0%";
+    showScreen(quizScreen);
+    renderCurrentItem();
+  }
+
+  function renderCurrentItem() {
+    const item = selectedItems[currentIndex];
+    answeredCurrent = false;
+    nextBtn.disabled = true;
+    feedbackEl.textContent = "";
+    feedbackEl.className = "";
+
+    qNumberEl.textContent = (currentIndex + 1).toString();
+    optionsContainer.innerHTML = "";
+
+    const progress = (currentIndex) / TOTAL_ITEMS * 100;
+    progressBarEl.style.width = progress + "%";
+
+    if (item.kind === 'mc') {
+      renderMCQuestion(item.q);
+    } else {
+      renderMatchingQuestion(item.q);
+    }
+  }
+
+  // === Render MC ===
+  function renderMCQuestion(q) {
+    questionMetaEl.textContent = `${q.type} Conditional – Multiple Choice`;
+    questionTextEl.textContent = q.text;
+
+    const labels = ["A", "B", "C"];
+    q.options.forEach((opt, index) => {
+      const btn = document.createElement('button');
+      btn.type = "button";
+      btn.className = "option-btn";
+      btn.dataset.index = index.toString();
+      btn.innerHTML = `<span class="label">${labels[index]})</span> ${opt}`;
+      btn.addEventListener('click', () => handleOptionClickMC(btn, q, index));
+      optionsContainer.appendChild(btn);
+    });
+  }
+
+  function handleOptionClickMC(btn, q, index) {
+    if (answeredCurrent) return;
+    answeredCurrent = true;
+
+    const correctIndex = q.correctIndex;
+    const optionButtons = optionsContainer.querySelectorAll('.option-btn');
+    optionButtons.forEach(b => b.disabled = true);
+
+    if (index === correctIndex) {
+      btn.classList.add('correct');
+      feedbackEl.textContent = "Correct ✅";
+      feedbackEl.className = "correct";
+      correctCount++;
+      correctCountEl.textContent = correctCount.toString();
+    } else {
+      btn.classList.add('incorrect');
+      feedbackEl.textContent = "Incorrect ❌";
+      feedbackEl.className = "incorrect";
+      incorrectCount++;
+      incorrectCountEl.textContent = incorrectCount.toString();
+    }
+
+    nextBtn.disabled = false;
+  }
+
+  // === Render Matching (cada fila con orden aleatorio propio) ===
+  function renderMatchingQuestion(q) {
+    questionMetaEl.textContent = `${q.type} Conditional – Matching`;
+    questionTextEl.textContent = "Match each sentence with the correct ending.";
+
+    // control para saber cuándo se completaron los 3 selects
+    let filledCount = 0;
+
+    q.stems.forEach((stem, stemIndex) => {
+      const row = document.createElement('div');
+      row.className = "match-row";
+      row.dataset.stemIndex = stemIndex.toString();
+
+      const spanStem = document.createElement('div');
+      spanStem.className = "match-stem";
+      spanStem.textContent = stem;
+
+      const select = document.createElement('select');
+      select.className = "match-select";
+      select.dataset.stemIndex = stemIndex.toString();
+      select.dataset.prev = "";
+
+      // Placeholder
+      const placeholder = document.createElement('option');
+      placeholder.value = "";
+      placeholder.textContent = "Select an option";
+      placeholder.disabled = true;
+      placeholder.selected = true;
+      select.appendChild(placeholder);
+
+      // === AQUÍ la clave: un orden aleatorio distinto por cada fila ===
+      const indices = q.options.map((_, i) => i);
+      shuffleArray(indices); // orden único de opciones para ESTA fila
+
+      indices.forEach(idx => {
+        const optEl = document.createElement('option');
+        optEl.value = String(idx); // índice real en q.options
+        optEl.textContent = q.options[idx];
+        select.appendChild(optEl);
+      });
+
+      row.appendChild(spanStem);
+      row.appendChild(select);
+      optionsContainer.appendChild(row);
+    });
+
+    const selects = optionsContainer.querySelectorAll('.match-select');
+    selects.forEach(select => {
+      select.addEventListener('change', () => {
+        const prev = select.dataset.prev || "";
+        if (prev === "" && select.value !== "") {
+          filledCount++;
+          select.dataset.prev = select.value;
+        }
+        if (!answeredCurrent && filledCount === q.stems.length) {
+          evaluateMatchingQuestion(q);
+        }
+      });
+    });
+  }
+
+  function evaluateMatchingQuestion(q) {
+    if (answeredCurrent) return;
+    answeredCurrent = true;
+
+    const rows = optionsContainer.querySelectorAll('.match-row');
+    let allCorrect = true;
+
+    rows.forEach(row => {
+      const stemIndex = parseInt(row.dataset.stemIndex, 10);
+      const select = row.querySelector('.match-select');
+      const selectedVal = select.value;
+      select.disabled = true;
+
+      const correctOptIndex = q.correct[stemIndex]; // índice correcto en q.options
+      const selectedIdx = selectedVal === "" ? null : parseInt(selectedVal, 10);
+
+      if (selectedIdx === correctOptIndex) {
+        row.classList.add('correct-row');
+        correctCount++;
+      } else {
+        row.classList.add('incorrect-row');
+        incorrectCount++;
+        allCorrect = false;
+      }
+    });
+
+    correctCountEl.textContent = correctCount.toString();
+    incorrectCountEl.textContent = incorrectCount.toString();
+
+    if (allCorrect) {
+      feedbackEl.textContent = "Correct ✅";
+      feedbackEl.className = "correct";
+    } else {
+      feedbackEl.textContent = "Incorrect ❌";
+      feedbackEl.className = "incorrect";
+    }
+
+    nextBtn.disabled = false;
+  }
+
+  function finishQuiz() {
+    const total = totalSubQuestions;
+    const percent = total > 0 ? Math.round((correctCount / total) * 100) : 0;
+    const score = total > 0 ? (correctCount / total) * 5 : 0;
+
+    finalCorrectEl.textContent = correctCount.toString();
+    finalIncorrectEl.textContent = incorrectCount.toString();
+    finalPercentEl.textContent = percent.toString();
+    finalScoreEl.textContent = score.toFixed(1);
+
+    progressBarEl.style.width = "100%";
+    showScreen(resultScreen);
+  }
+
+  function nextQuestion() {
+    if (!answeredCurrent) return;
+    currentIndex++;
+    if (currentIndex >= TOTAL_ITEMS) {
+      finishQuiz();
+    } else {
+      renderCurrentItem();
+    }
+  }
+
+  function resetToStartBySecurity(reason) {
+    if (document.fullscreenElement && document.exitFullscreen) {
+      document.exitFullscreen().catch(() => {});
+    }
+    alert("Security rule activated:\n" + reason + "\nThe quiz will restart with new random questions.");
+    showScreen(startScreen);
+  }
+
+  function restartQuiz() {
+    showScreen(startScreen);
+  }
+
+  // Descargar la página como HTML
+  function downloadHTML() {
+    const source = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
+    const blob = new Blob([source], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'conditional_quiz_matching_secure.html';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  // === Event Listeners (quiz flow) ===
+  startBtn.addEventListener('click', startQuiz);
+  nextBtn.addEventListener('click', nextQuestion);
+  restartBtn.addEventListener('click', restartQuiz);
+  downloadBtn.addEventListener('click', downloadHTML);
+
+  // === Security / Anti-cheat style handlers ===
+  function securityBreach(reason) {
+    if (!quizScreen.classList.contains('active') &&
+        !resultScreen.classList.contains('active')) {
+      return;
+    }
+    resetToStartBySecurity(reason);
+  }
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      securityBreach("Tab or window change detected.");
+    }
+  });
+
+  window.addEventListener('blur', () => {
+    securityBreach("Window lost focus or was minimized.");
+  });
+
+  document.addEventListener('contextmenu', function(e) {
+    e.preventDefault();
+    securityBreach("Right-click is not allowed.");
+  });
+
+  document.addEventListener('copy', e => {
+    e.preventDefault();
+    securityBreach("Copy is not allowed.");
+  });
+  document.addEventListener('cut', e => {
+    e.preventDefault();
+    securityBreach("Cut is not allowed.");
+  });
+  document.addEventListener('paste', e => {
+    e.preventDefault();
+    securityBreach("Paste is not allowed.");
+  });
+
+  document.addEventListener('keydown', function(e) {
+    if ((e.ctrlKey || e.metaKey) &&
+        ["c","p","s","u"].includes(e.key.toLowerCase())) {
+      e.preventDefault();
+      securityBreach("Keyboard shortcut is not allowed.");
+    }
+    if (e.key === "PrintScreen" || e.keyCode === 44) {
+      e.preventDefault();
+      securityBreach("Screenshot key detected.");
+    }
+  });
+
+  document.addEventListener('fullscreenchange', () => {
+    if (!document.fullscreenElement &&
+        (quizScreen.classList.contains('active') || resultScreen.classList.contains('active'))) {
+      securityBreach("Fullscreen mode was exited.");
+    }
+  });
+
+  window.addEventListener('beforeunload', function (e) {
+    if (quizScreen.classList.contains('active')) {
+      e.preventDefault();
+      e.returnValue = '';
+    }
+  });
+</script>
+</body>
+</html>
